@@ -1,4 +1,5 @@
--- Alternative method: Monitor render status via project changes
+    -- Debug mode
+    debugMode = true,-- Alternative method: Monitor render status via project changes
 function getAlternativeRenderStatus()
     -- Check if we can get timeline render status
     local timeline = project:GetCurrentTimeline()
@@ -96,6 +97,11 @@ function isFileCompletelyWritten(filepath, debugMode, stabilityWait, stabilityTh
         return false
     end
     
+    if debugMode then
+        print("   🔍 Checking file stability: " .. filepath)
+        print("   📊 Current size: " .. currentSize .. " bytes")
+    end
+    
     -- Wait a configurable amount and check size again
     os.execute("sleep " .. stabilityWait)
     
@@ -115,14 +121,26 @@ function isFileCompletelyWritten(filepath, debugMode, stabilityWait, stabilityTh
         local timeSinceModified = currentTime - fileTime
         
         if debugMode then
-            print("   📊 File size check: " .. currentSize .. " -> " .. newSize .. " bytes")
+            print("   📊 File size stability: " .. currentSize .. " -> " .. newSize .. " bytes")
             print("   ⏰ Last modified: " .. timeSinceModified .. " seconds ago")
         end
         
         -- File is complete if:
         -- 1. Size hasn't changed in the last few seconds AND
-        -- 2. File hasn't been modified recently
-        if currentSize == newSize and timeSinceModified > stabilityThreshold then
+        -- 2. File hasn't been modified recently AND
+        -- 3. File is substantial (not just a stub)
+        local sizeNum = tonumber(currentSize)
+        local isStable = currentSize == newSize
+        local isOldEnough = timeSinceModified > stabilityThreshold
+        local isSubstantial = sizeNum and sizeNum > 1024 -- At least 1KB
+        
+        if debugMode then
+            print("   ✅ Stability checks - Size stable: " .. (isStable and "Yes" or "No") .. 
+                  ", Old enough: " .. (isOldEnough and "Yes" or "No") .. 
+                  ", Substantial: " .. (isSubstantial and "Yes" or "No"))
+        end
+        
+        if isStable and isOldEnough and isSubstantial then
             return true
         end
     end
@@ -157,11 +175,12 @@ local CONFIG = {
     sendProgressUpdates = false,           -- Send updates at 25%, 50%, 75%
     
     -- File completion detection
-    fileStabilityWait = 5,                 -- Seconds to wait before checking file size again
-    fileStabilityThreshold = 10,           -- File must be unmodified for this many seconds
+    fileStabilityWait = 15,                -- Seconds to wait before checking file size again (increased for large files)
+    fileStabilityThreshold = 30,           -- File must be unmodified for this many seconds (increased for large files)
     
-    -- Debug mode
-    debugMode = true,
+    -- Large export handling
+    enableJobRemovalDetection = true,      -- Detect when jobs disappear from queue (often means completion)
+    maxWaitTime = 28800,                   -- Maximum wait time (8 hours for large exports)
 }
 
 -- Results tracking
@@ -486,14 +505,27 @@ function monitorRenderQueue()
         
         -- Check if all jobs are done
         local allDone = true
+        local activeJobs = 0
+        
         for id, initialJob in pairs(monitoring.initialJobs) do
             if not monitoring.sentUpdates[id].completed then
                 local currentJob = currentJobs[id]
-                if currentJob and currentJob.status ~= "Complete" and currentJob.status ~= "Failed" and currentJob.progress < 100 then
+                
+                -- Job removal detection (often indicates completion)
+                if CONFIG.enableJobRemovalDetection and not currentJob then
+                    monitoring.sentUpdates[id].completed = true
+                    print("✅ Job completed and removed from queue: " .. initialJob.name)
+                    local message = createCompletionMessage(initialJob, true, elapsedTime)
+                    sendiMessage(message)
+                elseif currentJob and currentJob.status ~= "Complete" and currentJob.status ~= "Failed" and currentJob.progress < 100 then
                     allDone = false
-                    break
+                    activeJobs = activeJobs + 1
                 end
             end
+        end
+        
+        if CONFIG.debugMode and activeJobs > 0 then
+            print("   🔄 " .. activeJobs .. " jobs still active")
         end
         
         if allDone then
