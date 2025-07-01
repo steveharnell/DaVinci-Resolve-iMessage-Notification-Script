@@ -1,5 +1,5 @@
     -- Debug mode
-    debugMode = true,-- Alternative method: Monitor render status via project changes
+    debugMode = true-- Alternative method: Monitor render status via project changes
 function getAlternativeRenderStatus()
     -- Check if we can get timeline render status
     local timeline = project:GetCurrentTimeline()
