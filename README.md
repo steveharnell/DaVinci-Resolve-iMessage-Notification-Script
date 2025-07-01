@@ -47,7 +47,7 @@ A Lua script for DaVinci Resolve that automatically sends iMessage notifications
    ~/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/
    ```
 
-3. **Configure your recipient** in the script:
+3. **Configure your recipient** in the script (LINE 165):
    ```lua
    local CONFIG = {
        iMessageRecipient = "your-email@icloud.com", -- Your iCloud email or phone number
