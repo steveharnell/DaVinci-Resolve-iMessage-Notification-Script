@@ -1,4 +1,4 @@
-# DaVinci Resolve Render Queue iMessage Notification Script
+# DaVinci Resolve iMessage Notification Script
 
 ## Description
 
@@ -12,9 +12,16 @@ This Lua script automatically monitors your DaVinci Resolve render queue and sen
 - ✅ Different emojis for completed, failed, or cancelled renders
 - 🧪 Built-in test message to verify setup
 
-## Setup Instructions
+### 1. Setup Instructions
 
-### 1. Configure Recipient
+**Download the script** (`imessage_export_notifications.lua`)
+
+**Copy to DaVinci Resolve scripts folder**:
+   ```
+   ~/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/
+   ```
+
+**Configure Recipient
 Edit line 3 in the script to set your phone number or Apple ID email:
 ```lua
 local recipient = "+15551234567"  -- Replace with your number or email
@@ -29,7 +36,7 @@ local recipient = "+15551234567"  -- Replace with your number or email
 2. Load your project with render jobs in the queue
 3. Go to **Workspace** > **Scripts** > **Browse Scripts...**
 4. Navigate to and run this script
-5. You should immediately receive a test message
+5. You should immediately receive a test message (🧪Test Message from DaVinci Resolve Render Queue Notification)
 
 ## Usage
 
@@ -40,10 +47,10 @@ local recipient = "+15551234567"  -- Replace with your number or email
 ## Message Format
 
 Notifications include:
-- Project name
+- Project name 📽️
 - Status emoji (✅ completed, ❌ failed, 🛑 cancelled)
 - Human-readable status
-- Total render time
+- Total render time ⏱️ 
 - Render mode (Individual Clips or Single Clip)
 
 **Example notification:**
