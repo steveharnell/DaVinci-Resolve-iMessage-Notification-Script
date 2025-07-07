@@ -1,4 +1,4 @@
--- DaVinci Resolve Render Queue iMessage Notification Script
+-- DaVinci Resolve iMessage Notification Script
 
 -- 1. Set the iMessage recipient (phone number or Apple ID email):
 local recipient = "+15551234567"  -- <-- replace with your target number/email
@@ -12,7 +12,7 @@ end
 
 -- 3. Test-message function
 local function sendTestMessage()
-    sendiMessage("🧪Test Message from DaVinci Resolve Render Queue Notification")
+    sendiMessage("🧪Test Message from DaVinci Resolve Notification")
 end
 
 -- Fire off the test message immediately:
